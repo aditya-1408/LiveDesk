@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function AgentLogin() {
@@ -13,8 +13,8 @@ export default function AgentLogin() {
     event.preventDefault();
     setError("");
     try {
-      await login(username, password);
-      navigate("/dashboard");
+      const result = await login(username, password);
+      navigate(result.user?.role === "admin" ? "/admin" : "/dashboard");
     } catch (err) {
       setError(err.message);
     }
@@ -28,6 +28,7 @@ export default function AgentLogin() {
         <label>Username<input value={username} onChange={(event) => setUsername(event.target.value)} /></label>
         <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
         <button>Sign in</button>
+        <Link to="/signup">Create agent/admin account</Link>
       </form>
     </main>
   );

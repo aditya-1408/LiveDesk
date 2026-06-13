@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { decodeToken, getStoredToken } from "../api.js";
+import { clearStoredToken, decodeToken, getStoredToken } from "../api.js";
 import ChatPanel from "../components/ChatPanel.jsx";
 import ConnectionStatus from "../components/ConnectionStatus.jsx";
 import Controls from "../components/Controls.jsx";
@@ -19,6 +20,13 @@ export default function CallRoom() {
     !role ||
     (role === "customer" && tokenPayload?.sessionId !== sessionId);
   const call = useMediasoup({ sessionId, role, token });
+
+  useEffect(() => {
+    if (!call.callEnded || role !== "customer") return undefined;
+    clearStoredToken();
+    const timer = setTimeout(() => navigate("/ended", { replace: true }), 900);
+    return () => clearTimeout(timer);
+  }, [call.callEnded, navigate, role]);
 
   if (invalidRoomAccess) {
     return (
@@ -58,7 +66,8 @@ export default function CallRoom() {
           onVideo={call.toggleVideo}
           onEnd={() => {
             call.endCall();
-            setTimeout(() => navigate(role === "agent" ? "/dashboard" : "/"), 800);
+            if (role === "customer") clearStoredToken();
+            setTimeout(() => navigate(role === "agent" ? "/dashboard" : "/ended"), 800);
           }}
         />
         {role === "agent" && (

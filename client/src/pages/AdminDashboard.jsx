@@ -2,6 +2,17 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api.js";
 
+function formatDuration(seconds) {
+  if (seconds == null) return "-";
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  return `${minutes}m ${rest}s`;
+}
+
+function formatDate(value) {
+  return value ? new Date(`${value}Z`).toLocaleString() : "-";
+}
+
 export default function AdminDashboard() {
   const [live, setLive] = useState([]);
   const [history, setHistory] = useState([]);
@@ -64,17 +75,18 @@ export default function AdminDashboard() {
       <section className="panel">
         <h2>Recent history</h2>
         <table>
-          <thead><tr><th>Session</th><th>Status</th><th>Participants</th><th>Chat</th><th>Recording</th><th>Created</th><th>Ended</th><th></th></tr></thead>
+          <thead><tr><th>Session</th><th>Status</th><th>Duration</th><th>Participants</th><th>Chat</th><th>Recording</th><th>Created</th><th>Ended</th><th></th></tr></thead>
           <tbody>
             {history.map((session) => (
               <tr key={session.id}>
                 <td>{session.id}</td>
                 <td>{session.status}</td>
+                <td>{formatDuration(session.duration_seconds)}</td>
                 <td>{session.participant_count}</td>
                 <td>{session.chat_count}</td>
                 <td>{session.recording_status || "idle"}</td>
-                <td>{session.created_at}</td>
-                <td>{session.ended_at || "-"}</td>
+                <td>{formatDate(session.created_at)}</td>
+                <td>{formatDate(session.ended_at)}</td>
                 <td><button onClick={() => inspectSession(session.id)}>Inspect</button></td>
               </tr>
             ))}
@@ -99,9 +111,9 @@ export default function AdminDashboard() {
                   {selected.participants.map((participant) => (
                     <tr key={participant.id}>
                       <td>{participant.role}</td>
-                      <td>{participant.joined_at}</td>
-                      <td>{participant.left_at || "connected"}</td>
-                      <td>{participant.duration_seconds ?? "-"}</td>
+                      <td>{formatDate(participant.joined_at)}</td>
+                      <td>{participant.left_at ? formatDate(participant.left_at) : "connected"}</td>
+                      <td>{formatDuration(participant.duration_seconds)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -113,7 +125,7 @@ export default function AdminDashboard() {
                 {selected.events.map((event) => (
                   <div key={event.id} className="event-item">
                     <strong>{event.event_type}</strong>
-                    <span>{event.role || "system"} · {event.created_at}</span>
+                    <span>{event.role || "system"} · {formatDate(event.created_at)}</span>
                   </div>
                 ))}
               </div>

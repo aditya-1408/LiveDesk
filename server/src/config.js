@@ -10,6 +10,7 @@ export const config = {
     .map((origin) => origin.trim())
     .filter(Boolean),
   jwtSecret: process.env.JWT_SECRET || "dev-only-change-me",
+  adminSignupCode: process.env.ADMIN_SIGNUP_CODE || "admin123",
   databasePath: process.env.DATABASE_PATH || "./support.db",
   uploadDir: process.env.UPLOAD_DIR || "./uploads",
   recordingDir: process.env.RECORDING_DIR || "./recordings",

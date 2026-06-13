@@ -79,6 +79,19 @@ export function useMediasoup({ sessionId, role, token }) {
   const consumersRef = useRef(new Map());
   const clientIdRef = useRef(localStorage.getItem("aq_client_id") || createClientId());
 
+  function stopAllMedia() {
+    localStreamRef.current?.getTracks().forEach((track) => track.stop());
+    for (const consumer of consumersRef.current.values()) consumer.close();
+    for (const producer of producersRef.current.values()) producer.close();
+    sendTransportRef.current?.close();
+    recvTransportRef.current?.close();
+    setRemoteStreams((current) => {
+      current.forEach((item) => item.stream.getTracks().forEach((track) => track.stop()));
+      return [];
+    });
+    setLocalStream(null);
+  }
+
   useEffect(() => {
     localStorage.setItem("aq_client_id", clientIdRef.current);
   }, []);
@@ -128,11 +141,17 @@ export function useMediasoup({ sessionId, role, token }) {
         setStatus("error");
       });
       socket.on("call-ended", () => {
+        stopAllMedia();
         setCallEnded(true);
         setStatus("ended");
+        socket.disconnect();
       });
       socket.on("peer-left", ({ peerId }) => {
-        setRemoteStreams((current) => current.filter((item) => item.peerId !== peerId));
+        setRemoteStreams((current) => {
+          const leaving = current.find((item) => item.peerId === peerId);
+          leaving?.stream.getTracks().forEach((track) => track.stop());
+          return current.filter((item) => item.peerId !== peerId);
+        });
       });
       socket.on("customer-return-window", ({ timeoutMs }) => {
         const minutes = Math.max(1, Math.round(timeoutMs / 60000));
@@ -223,7 +242,7 @@ export function useMediasoup({ sessionId, role, token }) {
     return () => {
       socketRef.current?.emit("leave");
       socketRef.current?.disconnect();
-      localStreamRef.current?.getTracks().forEach((track) => track.stop());
+      stopAllMedia();
     };
   }, [join]);
 
@@ -244,7 +263,7 @@ export function useMediasoup({ sessionId, role, token }) {
   function endCall() {
     if (role === "agent") socketRef.current?.emit("end-call");
     else socketRef.current?.emit("leave", { reason: "intentional" });
-    localStreamRef.current?.getTracks().forEach((track) => track.stop());
+    stopAllMedia();
     socketRef.current?.disconnect();
     setCallEnded(true);
     setStatus("ended");

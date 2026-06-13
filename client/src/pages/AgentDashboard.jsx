@@ -3,11 +3,22 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api.js";
 import { useAuth } from "../context/AuthContext.jsx";
 
+function formatDuration(seconds) {
+  if (seconds == null) return "-";
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  return `${minutes}m ${rest}s`;
+}
+
+function formatDate(value) {
+  return value ? new Date(`${value}Z`).toLocaleString() : "-";
+}
+
 export default function AgentDashboard() {
   const [sessions, setSessions] = useState([]);
   const [invite, setInvite] = useState(null);
   const [error, setError] = useState("");
-  const { logout, token } = useAuth();
+  const { logout, token, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   async function loadSessions() {
@@ -42,7 +53,7 @@ export default function AgentDashboard() {
           <p>Agent workspace for live browser support sessions.</p>
         </div>
         <nav>
-          <Link to="/admin">Admin</Link>
+          {isAdmin && <Link to="/admin">Admin</Link>}
           <button onClick={logout}>Logout</button>
         </nav>
       </header>
@@ -60,12 +71,13 @@ export default function AgentDashboard() {
       <section className="panel">
         <h2>Session history</h2>
         <table>
-          <thead><tr><th>Created</th><th>Status</th><th>Participants</th><th>Recording</th><th></th></tr></thead>
+          <thead><tr><th>Created</th><th>Status</th><th>Duration</th><th>Participants</th><th>Recording</th><th></th></tr></thead>
           <tbody>
             {sessions.map((session) => (
               <tr key={session.id}>
-                <td>{new Date(session.created_at).toLocaleString()}</td>
+                <td>{formatDate(session.created_at)}</td>
                 <td>{session.status}</td>
+                <td>{formatDuration(session.duration_seconds)}</td>
                 <td>{session.participant_count}</td>
                 <td>{session.recording_status || "idle"}</td>
                 <td><button onClick={() => enterRoom(session.id)} disabled={session.status === "ended"}>Open</button></td>

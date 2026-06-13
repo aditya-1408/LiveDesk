@@ -33,6 +33,15 @@ username: agent
 password: agent123
 ```
 
+Default admin credentials:
+
+```text
+username: admin
+password: admin123
+```
+
+New users can create accounts from `/signup`. Admin signup requires `ADMIN_SIGNUP_CODE` from `server/.env` (`admin123` in local demo mode).
+
 ## Demo Flow
 
 1. Sign in as the agent.

@@ -67,6 +67,7 @@ export function listSessions(agentId) {
     .prepare(
       `SELECT s.*,
         (SELECT COUNT(*) FROM participants p WHERE p.session_id = s.id) AS participant_count,
+        CAST((julianday(COALESCE(s.ended_at, CURRENT_TIMESTAMP)) - julianday(s.created_at)) * 86400 AS INTEGER) AS duration_seconds,
         (SELECT status FROM recordings r WHERE r.session_id = s.id ORDER BY id DESC LIMIT 1) AS recording_status
        FROM sessions s
        WHERE s.agent_id = ?

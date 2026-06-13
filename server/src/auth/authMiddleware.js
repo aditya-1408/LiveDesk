@@ -15,7 +15,14 @@ export function requireAuth(req, res, next) {
 
 export function requireAgent(req, res, next) {
   requireAuth(req, res, () => {
-    if (req.user.role !== "agent") return res.status(403).json({ error: "Agent access required" });
+    if (!["agent", "admin"].includes(req.user.role)) return res.status(403).json({ error: "Agent access required" });
+    next();
+  });
+}
+
+export function requireAdmin(req, res, next) {
+  requireAuth(req, res, () => {
+    if (req.user.role !== "admin") return res.status(403).json({ error: "Admin access required" });
     next();
   });
 }

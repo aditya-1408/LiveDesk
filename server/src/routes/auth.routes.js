@@ -1,7 +1,8 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import { db } from "../db/database.js";
-import { signAgent } from "../auth/jwt.js";
+import { config } from "../config.js";
+import { signUser } from "../auth/jwt.js";
 
 export const authRouter = express.Router();
 
@@ -13,7 +14,29 @@ authRouter.post("/login", (req, res) => {
   }
 
   res.json({
-    token: signAgent(agent),
-    agent: { id: agent.id, username: agent.username }
+    token: signUser(agent),
+    user: { id: agent.id, username: agent.username, role: agent.role || "agent" },
+    agent: { id: agent.id, username: agent.username, role: agent.role || "agent" }
   });
+});
+
+authRouter.post("/signup", (req, res) => {
+  const { username, password, role = "agent", adminCode } = req.body;
+  const cleanUsername = String(username || "").trim().toLowerCase();
+  if (!cleanUsername || cleanUsername.length < 3) return res.status(400).json({ error: "Username must be at least 3 characters" });
+  if (!password || String(password).length < 6) return res.status(400).json({ error: "Password must be at least 6 characters" });
+  if (!["agent", "admin"].includes(role)) return res.status(400).json({ error: "Invalid role" });
+  if (role === "admin" && adminCode !== config.adminSignupCode) {
+    return res.status(403).json({ error: "Invalid admin signup code" });
+  }
+
+  const existing = db.prepare("SELECT id FROM agents WHERE username = ?").get(cleanUsername);
+  if (existing) return res.status(409).json({ error: "Username already exists" });
+
+  const passwordHash = bcrypt.hashSync(String(password), 10);
+  const result = db
+    .prepare("INSERT INTO agents (username, password_hash, role) VALUES (?, ?, ?)")
+    .run(cleanUsername, passwordHash, role);
+  const user = { id: result.lastInsertRowid, username: cleanUsername, role };
+  res.status(201).json({ token: signUser(user), user, agent: user });
 });

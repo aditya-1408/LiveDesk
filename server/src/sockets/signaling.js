@@ -195,6 +195,8 @@ export function registerSignaling(io, socket) {
     clearCustomerReturnTimer(joined.sessionId);
     endSession(joined.sessionId, "agent");
     io.to(joined.sessionId).emit("call-ended", { by: "agent" });
+    const endedSessionId = joined.sessionId;
+    setTimeout(() => io.in(endedSessionId).disconnectSockets(true), 250);
     closeRoom(joined.sessionId);
     callbackOrEmit(socket, "ended", { ok: true }, cb);
   });
@@ -202,6 +204,11 @@ export function registerSignaling(io, socket) {
   const leave = (payload = {}) => {
     if (!joined) return;
     const snapshot = joined;
+    const session = getSession(snapshot.sessionId);
+    if (session?.status === "ended") {
+      joined = null;
+      return;
+    }
     const key = `${snapshot.sessionId}:${snapshot.role}:${snapshot.clientId}`;
     if (payload.reason === "intentional") {
       getOrCreateRoom(snapshot.sessionId).then((room) => {

@@ -1,11 +1,11 @@
 import { createContext, useContext, useMemo, useState } from "react";
-import { api, clearStoredToken, getStoredToken, setStoredToken } from "../api.js";
+import { api, clearStoredToken, decodeToken, getStoredToken, setStoredToken } from "../api.js";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(getStoredToken());
-  const [agent, setAgent] = useState(null);
+  const [user, setUser] = useState(() => decodeToken(getStoredToken()));
 
   async function login(username, password) {
     const result = await api("/api/auth/login", {
@@ -15,17 +15,41 @@ export function AuthProvider({ children }) {
     });
     setStoredToken(result.token);
     setToken(result.token);
-    setAgent(result.agent);
+    setUser(result.user || result.agent);
+    return result;
+  }
+
+  async function signup(username, password, role, adminCode) {
+    const result = await api("/api/auth/signup", {
+      method: "POST",
+      token: null,
+      body: JSON.stringify({ username, password, role, adminCode })
+    });
+    setStoredToken(result.token);
+    setToken(result.token);
+    setUser(result.user || result.agent);
     return result;
   }
 
   function logout() {
     clearStoredToken();
     setToken(null);
-    setAgent(null);
+    setUser(null);
   }
 
-  const value = useMemo(() => ({ token, agent, login, logout, isAgent: Boolean(token) }), [token, agent]);
+  const value = useMemo(
+    () => ({
+      token,
+      user,
+      agent: user,
+      login,
+      signup,
+      logout,
+      isAgent: ["agent", "admin"].includes(user?.role),
+      isAdmin: user?.role === "admin"
+    }),
+    [token, user]
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
