@@ -1,0 +1,12 @@
+node_modules/
+.env
+*.db
+*.db-shm
+*.db-wal
+dist/
+recordings/
+uploads/
+.DS_Store
+npm-debug.log*
+*.log
+*.pid
