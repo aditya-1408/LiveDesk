@@ -11,6 +11,51 @@ function emitAck(socket, event, payload = {}) {
   });
 }
 
+function createDemoMediaStream(role) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 960;
+  canvas.height = 540;
+  const ctx = canvas.getContext("2d");
+  let frame = 0;
+
+  function draw() {
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, role === "agent" ? "#123c69" : "#14532d");
+    gradient.addColorStop(1, "#0f172a");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(255,255,255,0.12)";
+    ctx.beginPath();
+    ctx.arc(160 + Math.sin(frame / 20) * 60, 140, 90, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "white";
+    ctx.font = "700 46px system-ui, sans-serif";
+    ctx.fillText(`${role} demo camera`, 80, 270);
+    ctx.font = "28px system-ui, sans-serif";
+    ctx.fillText("Physical camera is busy on this device", 80, 320);
+    ctx.fillText(new Date().toLocaleTimeString(), 80, 370);
+    frame += 1;
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+  const stream = canvas.captureStream(24);
+
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (AudioContextClass) {
+    const audioContext = new AudioContextClass();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    const destination = audioContext.createMediaStreamDestination();
+    gain.gain.value = 0;
+    oscillator.connect(gain).connect(destination);
+    oscillator.start();
+    destination.stream.getAudioTracks().forEach((track) => stream.addTrack(track));
+  }
+
+  return stream;
+}
+
 export function useMediasoup({ sessionId, role, token }) {
   const [localStream, setLocalStream] = useState(null);
   const [remoteStreams, setRemoteStreams] = useState([]);
@@ -106,7 +151,17 @@ export function useMediasoup({ sessionId, role, token }) {
       }
 
       setStatus("requesting-media");
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+      } catch (mediaError) {
+        if (["NotReadableError", "TrackStartError", "AbortError"].includes(mediaError.name)) {
+          stream = createDemoMediaStream(role);
+          setNotice("Camera or microphone is busy, so this participant joined with demo media.");
+        } else {
+          throw mediaError;
+        }
+      }
       localStreamRef.current = stream;
       setLocalStream(stream);
 

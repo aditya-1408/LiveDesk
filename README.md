@@ -77,3 +77,4 @@ For LAN/ngrok demos, set `ANNOUNCED_IP` in `server/.env` to the reachable host/I
 - If the demo is exposed beyond localhost, firewall rules must allow the RTC port range.
 - Chat uploads allow common images, PDFs, DOC/DOCX, and text files up to 10MB.
 - `RECONNECT_GRACE_MS` controls accidental disconnect recovery. `CUSTOMER_RETURN_WINDOW_MS` controls how long the agent room remains open after the customer leaves.
+- When testing both roles on one laptop, the second browser may not be able to access the same webcam. The app falls back to generated demo media so the SFU path can still be tested. On separate devices, both sides use real camera/microphone.
