@@ -1,7 +1,11 @@
 import express from "express";
-import { getMetricsRegistry } from "../services/metricsService.js";
+import { getMetricsRegistry, getOperationalMetrics } from "../services/metricsService.js";
 
 export const metricsRouter = express.Router();
+
+metricsRouter.get("/api/metrics", (_req, res) => {
+  res.json(getOperationalMetrics());
+});
 
 metricsRouter.get("/metrics", async (_req, res) => {
   const registry = getMetricsRegistry();

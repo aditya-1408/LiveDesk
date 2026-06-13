@@ -1,6 +1,6 @@
 import { config } from "../config.js";
 import { getSession, getSessionForAgent, addParticipant, markParticipantLeft, markSessionActive, endSession } from "../services/sessionService.js";
-import { mediasoupProducersTotal, socketErrorsTotal } from "../services/metricsService.js";
+import { recordMediasoupProducer, recordSocketError } from "../services/metricsService.js";
 import { authenticateSocket } from "./authSocket.js";
 import { closeRoom, getOrCreateRoom } from "./rooms.js";
 
@@ -13,7 +13,7 @@ function callbackOrEmit(socket, event, payload, cb) {
 }
 
 function socketError(socket, message, cb) {
-  socketErrorsTotal.inc();
+  recordSocketError();
   callbackOrEmit(socket, "error", { message }, cb);
 }
 
@@ -141,7 +141,7 @@ export function registerSignaling(io, socket) {
       if (!transport) return socketError(socket, "Transport not found", cb);
       const producer = await transport.produce({ kind, rtpParameters, appData });
       room.addProducer(socket.id, producer);
-      mediasoupProducersTotal.inc();
+      recordMediasoupProducer();
       socket.to(joined.sessionId).emit("new-producer", { producerId: producer.id, peerId: socket.id, kind });
       callbackOrEmit(socket, "produced", { producerId: producer.id }, cb);
     } catch (error) {
