@@ -123,8 +123,8 @@ export function useMediasoup({ sessionId, role, token }) {
     setRemoteStreams((current) => {
       const existing = current.find((item) => item.peerId === peerId);
       if (existing) {
-        existing.stream.addTrack(consumer.track);
-        return [...current];
+        const nextStream = new MediaStream([...existing.stream.getTracks(), consumer.track]);
+        return current.map((item) => (item.peerId === peerId ? { ...item, stream: nextStream } : item));
       }
       return [...current, { peerId, stream }];
     });
