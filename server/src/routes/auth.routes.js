@@ -7,16 +7,21 @@ import { signUser } from "../auth/jwt.js";
 export const authRouter = express.Router();
 
 authRouter.post("/login", (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, role } = req.body;
+  if (role && !["agent", "admin"].includes(role)) return res.status(400).json({ error: "Invalid role" });
   const agent = db.prepare("SELECT * FROM agents WHERE username = ?").get(username);
   if (!agent || !bcrypt.compareSync(password || "", agent.password_hash)) {
     return res.status(401).json({ error: "Invalid username or password" });
   }
+  const agentRole = agent.role || "agent";
+  if (role && agentRole !== role) {
+    return res.status(403).json({ error: `Use the ${agentRole} login for this account` });
+  }
 
   res.json({
     token: signUser(agent),
-    user: { id: agent.id, username: agent.username, role: agent.role || "agent" },
-    agent: { id: agent.id, username: agent.username, role: agent.role || "agent" }
+    user: { id: agent.id, username: agent.username, role: agentRole },
+    agent: { id: agent.id, username: agent.username, role: agentRole }
   });
 });
 

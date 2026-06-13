@@ -7,11 +7,11 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(getStoredToken());
   const [user, setUser] = useState(() => decodeToken(getStoredToken()));
 
-  async function login(username, password) {
+  async function login(username, password, role) {
     const result = await api("/api/auth/login", {
       method: "POST",
       token: null,
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username, password, role })
     });
     setStoredToken(result.token);
     setToken(result.token);
