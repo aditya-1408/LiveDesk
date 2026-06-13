@@ -51,8 +51,15 @@ export default function CallRoom() {
           <ConnectionStatus status={call.status} error={call.error} notice={call.notice} callEnded={call.callEnded} />
         </header>
         <div className="video-grid">
-          {call.localStream && <VideoTile stream={call.localStream} label={role} muted isLocal />}
-          {call.remoteStreams.map((remote) => <VideoTile key={remote.peerId} stream={remote.stream} label="remote participant" />)}
+          {call.localStream && <VideoTile stream={call.localStream} label={role} muted isLocal mediaState={call.mediaState} />}
+          {call.remoteStreams.map((remote) => (
+            <VideoTile
+              key={remote.peerId}
+              stream={remote.stream}
+              label="remote participant"
+              mediaState={call.remoteMediaStates[remote.peerId]}
+            />
+          ))}
           {!call.localStream && (
             <div className="empty-video">
               {call.error || (call.status === "requesting-media" ? "Allow camera and microphone access..." : "Connecting to the support session...")}

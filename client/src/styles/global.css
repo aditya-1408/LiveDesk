@@ -282,6 +282,25 @@ th {
   font-size: 0.85rem;
 }
 
+.media-badges {
+  position: absolute;
+  right: 0.8rem;
+  top: 0.8rem;
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.media-badges span {
+  border-radius: 999px;
+  padding: 0.32rem 0.52rem;
+  background: rgba(180, 35, 24, 0.9);
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .empty-video {
   display: grid;
   place-items: center;

@@ -81,7 +81,17 @@ export function registerSignaling(io, socket) {
         socket.to(sessionId).emit("peer-joined", { peerId: socket.id, role });
       }
 
-      callbackOrEmit(socket, "joined", { ok: true, peerId: socket.id, existingProducers: room.getProducersExcept(socket.id) }, cb);
+      callbackOrEmit(
+        socket,
+        "joined",
+        {
+          ok: true,
+          peerId: socket.id,
+          existingPeers: room.getPeersExcept(socket.id),
+          existingProducers: room.getProducersExcept(socket.id)
+        },
+        cb
+      );
     } catch (error) {
       socketError(socket, error.message, cb);
     }

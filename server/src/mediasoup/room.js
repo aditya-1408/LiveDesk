@@ -85,6 +85,16 @@ export class Room {
     return producers;
   }
 
+  getPeersExcept(socketId) {
+    return [...this.peers.entries()]
+      .filter(([peerId]) => peerId !== socketId)
+      .map(([peerId, peer]) => ({
+        peerId,
+        role: peer.role,
+        media: peer.media
+      }));
+  }
+
   removePeer(socketId) {
     const peer = this.peers.get(socketId);
     if (!peer) return null;

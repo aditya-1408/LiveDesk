@@ -70,6 +70,7 @@ export function useMediasoup({ sessionId, role, token }) {
   const [notice, setNotice] = useState("");
   const [callEnded, setCallEnded] = useState(false);
   const [mediaState, setMediaState] = useState({ audio: true, video: true });
+  const [remoteMediaStates, setRemoteMediaStates] = useState({});
   const socketRef = useRef(null);
   const localStreamRef = useRef(null);
   const deviceRef = useRef(null);
@@ -77,18 +78,23 @@ export function useMediasoup({ sessionId, role, token }) {
   const recvTransportRef = useRef(null);
   const producersRef = useRef(new Map());
   const consumersRef = useRef(new Map());
+  const pendingProducersRef = useRef([]);
+  const consumedProducerIdsRef = useRef(new Set());
   const clientIdRef = useRef(localStorage.getItem("aq_client_id") || createClientId());
 
   function stopAllMedia() {
     localStreamRef.current?.getTracks().forEach((track) => track.stop());
     for (const consumer of consumersRef.current.values()) consumer.close();
     for (const producer of producersRef.current.values()) producer.close();
+    consumedProducerIdsRef.current.clear();
+    pendingProducersRef.current = [];
     sendTransportRef.current?.close();
     recvTransportRef.current?.close();
     setRemoteStreams((current) => {
       current.forEach((item) => item.stream.getTracks().forEach((track) => track.stop()));
       return [];
     });
+    setRemoteMediaStates({});
     setLocalStream(null);
   }
 
@@ -99,7 +105,13 @@ export function useMediasoup({ sessionId, role, token }) {
   const consumeProducer = useCallback(async (producerId, peerId) => {
     const socket = socketRef.current;
     const device = deviceRef.current;
-    if (!socket || !device || !recvTransportRef.current) return;
+    if (consumedProducerIdsRef.current.has(producerId)) return;
+    if (!socket || !device || !recvTransportRef.current) {
+      if (!pendingProducersRef.current.some((producer) => producer.producerId === producerId)) {
+        pendingProducersRef.current.push({ producerId, peerId });
+      }
+      return;
+    }
 
     const params = await emitAck(socket, "consume", {
       producerId,
@@ -117,7 +129,16 @@ export function useMediasoup({ sessionId, role, token }) {
       return [...current, { peerId, stream }];
     });
     await emitAck(socket, "consumer-resume", { consumerId: consumer.id });
+    consumedProducerIdsRef.current.add(producerId);
   }, []);
+
+  const consumePendingProducers = useCallback(async () => {
+    const pending = [...pendingProducersRef.current];
+    pendingProducersRef.current = [];
+    for (const producer of pending) {
+      await consumeProducer(producer.producerId, producer.peerId);
+    }
+  }, [consumeProducer]);
 
   const join = useCallback(async () => {
     if (!sessionId || !role || !token) return;
@@ -155,6 +176,21 @@ export function useMediasoup({ sessionId, role, token }) {
           leaving?.stream.getTracks().forEach((track) => track.stop());
           return current.filter((item) => item.peerId !== peerId);
         });
+        setRemoteMediaStates((current) => {
+          const next = { ...current };
+          delete next[peerId];
+          return next;
+        });
+      });
+      socket.on("peer-media-toggled", ({ peerId, kind, enabled }) => {
+        setRemoteMediaStates((current) => ({
+          ...current,
+          [peerId]: {
+            audio: current[peerId]?.audio ?? true,
+            video: current[peerId]?.video ?? true,
+            [kind]: enabled
+          }
+        }));
       });
       socket.on("customer-return-window", ({ timeoutMs }) => {
         const minutes = Math.max(1, Math.round(timeoutMs / 60000));
@@ -169,6 +205,17 @@ export function useMediasoup({ sessionId, role, token }) {
         clientId: clientIdRef.current
       });
       setNotice("");
+      setRemoteMediaStates(
+        Object.fromEntries(
+          (joined.existingPeers || []).map((peer) => [
+            peer.peerId,
+            {
+              audio: peer.media?.audio ?? true,
+              video: peer.media?.video ?? true
+            }
+          ])
+        )
+      );
 
       const { rtpCapabilities } = await emitAck(socket, "get-router-rtp-capabilities");
       const device = new Device();
@@ -226,6 +273,7 @@ export function useMediasoup({ sessionId, role, token }) {
       for (const producer of joined.existingProducers || []) {
         await consumeProducer(producer.producerId, producer.peerId);
       }
+      await consumePendingProducers();
 
       setStatus("connected");
     } catch (err) {
@@ -239,7 +287,7 @@ export function useMediasoup({ sessionId, role, token }) {
       setStatus("error");
       socketRef.current?.disconnect();
     }
-  }, [consumeProducer, role, sessionId, token]);
+  }, [consumePendingProducers, consumeProducer, role, sessionId, token]);
 
   useEffect(() => {
     join();
@@ -282,6 +330,7 @@ export function useMediasoup({ sessionId, role, token }) {
     socket: socketRef.current,
     localStream,
     remoteStreams,
+    remoteMediaStates,
     status,
     error,
     notice,
