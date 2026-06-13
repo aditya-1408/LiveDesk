@@ -122,7 +122,9 @@ th {
 .topbar nav,
 .toolbar,
 .invite-box,
-.controls {
+.controls,
+.row-actions,
+.detail-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -147,6 +149,48 @@ th {
   padding: 1.2rem;
   margin-bottom: 1rem;
   overflow-x: auto;
+}
+
+.row-actions {
+  flex-wrap: nowrap;
+}
+
+.detail-header {
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.detail-header p {
+  margin: 0.25rem 0 0;
+  color: #64748b;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: 1rem;
+}
+
+.event-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.event-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  background: #f8fafc;
+}
+
+.event-item strong,
+.event-item span {
+  display: block;
+}
+
+.event-item span {
+  color: #64748b;
+  margin-top: 0.2rem;
 }
 
 .status {
