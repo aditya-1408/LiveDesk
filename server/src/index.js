@@ -1,4 +1,6 @@
 import http from "node:http";
+import fs from "node:fs";
+import path from "node:path";
 import express from "express";
 import cors from "cors";
 import { config, isAllowedOrigin } from "./config.js";
@@ -35,6 +37,14 @@ async function bootstrap() {
   app.use("/api", adminRouter);
   app.use("/api", uploadRouter);
   app.use(metricsRouter);
+
+  if (config.clientDistDir && fs.existsSync(config.clientDistDir)) {
+    app.use(express.static(config.clientDistDir));
+    app.get("*", (req, res, next) => {
+      if (req.path.startsWith("/api") || req.path.startsWith("/socket.io") || req.path === "/metrics") return next();
+      res.sendFile(path.join(config.clientDistDir, "index.html"));
+    });
+  }
 
   const httpServer = http.createServer(app);
   const io = createSocketServer(httpServer);

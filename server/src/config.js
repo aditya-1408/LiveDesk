@@ -14,6 +14,7 @@ export const config = {
   databasePath: process.env.DATABASE_PATH || "./support.db",
   uploadDir: process.env.UPLOAD_DIR || "./uploads",
   recordingDir: process.env.RECORDING_DIR || "./recordings",
+  clientDistDir: process.env.CLIENT_DIST_DIR || "",
   announcedIp: process.env.ANNOUNCED_IP || "127.0.0.1",
   rtcMinPort: Number(process.env.RTC_MIN_PORT || 40000),
   rtcMaxPort: Number(process.env.RTC_MAX_PORT || 40100),

@@ -1,0 +1,14 @@
+.git
+node_modules
+client/node_modules
+server/node_modules
+client/dist
+server/support.db
+server/uploads
+server/recordings
+*.log
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.deploy
