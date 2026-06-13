@@ -16,6 +16,7 @@ export function useMediasoup({ sessionId, role, token }) {
   const [remoteStreams, setRemoteStreams] = useState([]);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [callEnded, setCallEnded] = useState(false);
   const [mediaState, setMediaState] = useState({ audio: true, video: true });
   const socketRef = useRef(null);
@@ -81,6 +82,10 @@ export function useMediasoup({ sessionId, role, token }) {
       });
       socket.on("peer-left", ({ peerId }) => {
         setRemoteStreams((current) => current.filter((item) => item.peerId !== peerId));
+      });
+      socket.on("customer-return-window", ({ timeoutMs }) => {
+        const minutes = Math.max(1, Math.round(timeoutMs / 60000));
+        setNotice(`Customer left. Session stays open for ${minutes} minute${minutes === 1 ? "" : "s"}.`);
       });
       socket.on("new-producer", ({ producerId, peerId }) => consumeProducer(producerId, peerId));
 
@@ -185,6 +190,7 @@ export function useMediasoup({ sessionId, role, token }) {
     remoteStreams,
     status,
     error,
+    notice,
     callEnded,
     mediaState,
     toggleAudio: () => toggle("audio"),

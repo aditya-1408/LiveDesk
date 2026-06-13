@@ -217,6 +217,11 @@ th {
   color: #475569;
 }
 
+.status.notice {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .call-room {
   min-height: 100vh;
   display: grid;

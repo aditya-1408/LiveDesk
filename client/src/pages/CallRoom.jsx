@@ -40,7 +40,7 @@ export default function CallRoom() {
             <h1>Support session</h1>
             <p>{role} · {sessionId}</p>
           </div>
-          <ConnectionStatus status={call.status} error={call.error} callEnded={call.callEnded} />
+          <ConnectionStatus status={call.status} error={call.error} notice={call.notice} callEnded={call.callEnded} />
         </header>
         <div className="video-grid">
           {call.localStream && <VideoTile stream={call.localStream} label={role} muted isLocal />}

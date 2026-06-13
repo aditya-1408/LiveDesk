@@ -5,6 +5,7 @@ import { authenticateSocket } from "./authSocket.js";
 import { closeRoom, getOrCreateRoom } from "./rooms.js";
 
 const pendingDisconnects = new Map();
+const customerReturnTimers = new Map();
 
 function callbackOrEmit(socket, event, payload, cb) {
   if (typeof cb === "function") cb(payload);
@@ -19,6 +20,33 @@ function socketError(socket, message, cb) {
 export function registerSignaling(io, socket) {
   let joined = null;
 
+  function clearCustomerReturnTimer(sessionId) {
+    const timer = customerReturnTimers.get(sessionId);
+    if (timer) {
+      clearTimeout(timer);
+      customerReturnTimers.delete(sessionId);
+    }
+  }
+
+  function scheduleCustomerReturnWindow(sessionId) {
+    clearCustomerReturnTimer(sessionId);
+    const timer = setTimeout(async () => {
+      const session = getSession(sessionId);
+      if (!session || session.status === "ended") return;
+      const room = await getOrCreateRoom(sessionId);
+      if (room.findActivePeerByRole("customer")) return;
+      endSession(sessionId, "system");
+      io.to(sessionId).emit("call-ended", { by: "customer-timeout" });
+      closeRoom(sessionId);
+      customerReturnTimers.delete(sessionId);
+    }, config.customerReturnWindowMs);
+    customerReturnTimers.set(sessionId, timer);
+    io.to(sessionId).emit("customer-return-window", {
+      sessionId,
+      timeoutMs: config.customerReturnWindowMs
+    });
+  }
+
   socket.on("join-room", async ({ sessionId, role, clientId }, cb) => {
     try {
       const tokenUser = authenticateSocket(socket);
@@ -30,6 +58,7 @@ export function registerSignaling(io, socket) {
       if (role === "agent" && !getSessionForAgent(sessionId, tokenUser.agentId)) return socketError(socket, "Agent cannot access this session", cb);
 
       const room = await getOrCreateRoom(sessionId);
+      if (role === "customer") clearCustomerReturnTimer(sessionId);
       const existingSameRole = room.findActivePeerByRole(role);
       const pendingKey = `${sessionId}:${role}:${clientId}`;
       const pending = pendingDisconnects.get(pendingKey);
@@ -163,6 +192,7 @@ export function registerSignaling(io, socket) {
   socket.on("end-call", (_payload, cb) => {
     if (!joined) return socketError(socket, "Join a room first", cb);
     if (joined.role !== "agent") return socketError(socket, "Only the agent can end the session", cb);
+    clearCustomerReturnTimer(joined.sessionId);
     endSession(joined.sessionId, "agent");
     io.to(joined.sessionId).emit("call-ended", { by: "agent" });
     closeRoom(joined.sessionId);
@@ -178,6 +208,7 @@ export function registerSignaling(io, socket) {
         room.removePeer(socket.id);
         markParticipantLeft(snapshot.participantId, snapshot.role, snapshot.sessionId);
         socket.to(snapshot.sessionId).emit("peer-left", { peerId: socket.id, role: snapshot.role });
+        if (snapshot.role === "customer") scheduleCustomerReturnWindow(snapshot.sessionId);
       });
       pendingDisconnects.delete(key);
       joined = null;
@@ -188,6 +219,7 @@ export function registerSignaling(io, socket) {
       room.removePeer(socket.id);
       markParticipantLeft(snapshot.participantId, snapshot.role, snapshot.sessionId);
       socket.to(snapshot.sessionId).emit("peer-left", { peerId: socket.id });
+      if (snapshot.role === "customer") scheduleCustomerReturnWindow(snapshot.sessionId);
       pendingDisconnects.delete(key);
     }, config.reconnectGraceMs);
     pendingDisconnects.set(key, { timer, socketId: socket.id });

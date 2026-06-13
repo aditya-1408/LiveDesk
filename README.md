@@ -63,6 +63,7 @@ For LAN/ngrok demos, set `ANNOUNCED_IP` in `server/.env` to the reachable host/I
 - Authenticated file sharing in chat with 10MB upload cap
 - Session history, participants, events, and chat storage
 - Basic reconnect grace window
+- Customer leave hold-open window before auto-closing an abandoned session
 - Admin live/history dashboard
 - Admin ability to end active sessions
 - Recording start/stop/download flow using browser MediaRecorder upload to server storage
@@ -75,3 +76,4 @@ For LAN/ngrok demos, set `ANNOUNCED_IP` in `server/.env` to the reachable host/I
 - Local camera/mic testing is best in Chrome or Edge.
 - If the demo is exposed beyond localhost, firewall rules must allow the RTC port range.
 - Chat uploads allow common images, PDFs, DOC/DOCX, and text files up to 10MB.
+- `RECONNECT_GRACE_MS` controls accidental disconnect recovery. `CUSTOMER_RETURN_WINDOW_MS` controls how long the agent room remains open after the customer leaves.

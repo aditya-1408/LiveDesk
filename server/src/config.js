@@ -12,7 +12,8 @@ export const config = {
   announcedIp: process.env.ANNOUNCED_IP || "127.0.0.1",
   rtcMinPort: Number(process.env.RTC_MIN_PORT || 40000),
   rtcMaxPort: Number(process.env.RTC_MAX_PORT || 40100),
-  reconnectGraceMs: Number(process.env.RECONNECT_GRACE_MS || 30000)
+  reconnectGraceMs: Number(process.env.RECONNECT_GRACE_MS || 30000),
+  customerReturnWindowMs: Number(process.env.CUSTOMER_RETURN_WINDOW_MS || 300000)
 };
 
 export const mediaCodecs = [
