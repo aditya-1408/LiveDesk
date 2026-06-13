@@ -12,6 +12,17 @@ export function clearStoredToken() {
   localStorage.removeItem("aq_token");
 }
 
+export function decodeToken(token) {
+  if (!token) return null;
+  try {
+    const [, payload] = token.split(".");
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(normalized));
+  } catch {
+    return null;
+  }
+}
+
 export async function api(path, options = {}) {
   const token = options.token ?? getStoredToken();
   const isFormData = options.body instanceof FormData;

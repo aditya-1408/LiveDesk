@@ -169,10 +169,20 @@ export function registerSignaling(io, socket) {
     callbackOrEmit(socket, "ended", { ok: true }, cb);
   });
 
-  const leave = () => {
+  const leave = (payload = {}) => {
     if (!joined) return;
     const snapshot = joined;
     const key = `${snapshot.sessionId}:${snapshot.role}:${snapshot.clientId}`;
+    if (payload.reason === "intentional") {
+      getOrCreateRoom(snapshot.sessionId).then((room) => {
+        room.removePeer(socket.id);
+        markParticipantLeft(snapshot.participantId, snapshot.role, snapshot.sessionId);
+        socket.to(snapshot.sessionId).emit("peer-left", { peerId: socket.id, role: snapshot.role });
+      });
+      pendingDisconnects.delete(key);
+      joined = null;
+      return;
+    }
     const timer = setTimeout(async () => {
       const room = await getOrCreateRoom(snapshot.sessionId);
       room.removePeer(socket.id);

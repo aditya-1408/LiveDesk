@@ -19,6 +19,7 @@ export function useMediasoup({ sessionId, role, token }) {
   const [callEnded, setCallEnded] = useState(false);
   const [mediaState, setMediaState] = useState({ audio: true, video: true });
   const socketRef = useRef(null);
+  const localStreamRef = useRef(null);
   const deviceRef = useRef(null);
   const sendTransportRef = useRef(null);
   const recvTransportRef = useRef(null);
@@ -62,7 +63,18 @@ export function useMediasoup({ sessionId, role, token }) {
       const socket = createSocket(token, role);
       socketRef.current = socket;
 
-      socket.on("error", ({ message }) => setError(message));
+      socket.on("connect_error", (err) => {
+        setError(err.message || "Could not connect to signaling server");
+        setStatus("error");
+      });
+      socket.on("disconnect", (reason) => {
+        setStatus(reason === "io client disconnect" ? "left" : "reconnecting");
+      });
+      socket.io.on("reconnect", () => setStatus("connecting"));
+      socket.on("error", ({ message }) => {
+        setError(message);
+        setStatus("error");
+      });
       socket.on("call-ended", () => {
         setCallEnded(true);
         setStatus("ended");
@@ -84,7 +96,13 @@ export function useMediasoup({ sessionId, role, token }) {
       await device.load({ routerRtpCapabilities: rtpCapabilities });
       deviceRef.current = device;
 
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("This browser does not support camera/microphone access.");
+      }
+
+      setStatus("requesting-media");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+      localStreamRef.current = stream;
       setLocalStream(stream);
 
       const sendParams = await emitAck(socket, "create-transport", { direction: "send" });
@@ -117,8 +135,15 @@ export function useMediasoup({ sessionId, role, token }) {
 
       setStatus("connected");
     } catch (err) {
-      setError(err.message);
+      const message =
+        err.name === "NotAllowedError"
+          ? "Camera or microphone permission was blocked. Allow access in the browser address bar, then rejoin from the invite link."
+          : err.name === "NotFoundError"
+            ? "No camera or microphone was found on this device."
+            : err.message;
+      setError(message);
       setStatus("error");
+      socketRef.current?.disconnect();
     }
   }, [consumeProducer, role, sessionId, token]);
 
@@ -127,7 +152,7 @@ export function useMediasoup({ sessionId, role, token }) {
     return () => {
       socketRef.current?.emit("leave");
       socketRef.current?.disconnect();
-      localStream?.getTracks().forEach((track) => track.stop());
+      localStreamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, [join]);
 
@@ -147,7 +172,9 @@ export function useMediasoup({ sessionId, role, token }) {
 
   function endCall() {
     if (role === "agent") socketRef.current?.emit("end-call");
-    else socketRef.current?.emit("leave");
+    else socketRef.current?.emit("leave", { reason: "intentional" });
+    localStreamRef.current?.getTracks().forEach((track) => track.stop());
+    socketRef.current?.disconnect();
     setCallEnded(true);
     setStatus("ended");
   }
