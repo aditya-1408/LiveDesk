@@ -309,7 +309,9 @@ export function useMediasoup({ sessionId, role, token }) {
       track.enabled = nextEnabled;
     });
     setMediaState((current) => ({ ...current, [kind]: nextEnabled }));
-    socketRef.current?.emit("toggle-media", { kind, enabled: nextEnabled });
+    if (socketRef.current?.connected) {
+      socketRef.current.emit("toggle-media", { kind, enabled: nextEnabled });
+    }
   }
 
   function endCall() {

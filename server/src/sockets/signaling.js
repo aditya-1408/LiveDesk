@@ -122,6 +122,7 @@ export function registerSignaling(io, socket) {
 
   socket.on("connect-transport", async ({ transportId, dtlsParameters }, cb) => {
     try {
+      if (!joined) return socketError(socket, "Join a room first", cb);
       const room = await getOrCreateRoom(joined.sessionId);
       const transport = room.getTransport(socket.id, transportId);
       if (!transport) return socketError(socket, "Transport not found", cb);
@@ -134,6 +135,7 @@ export function registerSignaling(io, socket) {
 
   socket.on("produce", async ({ transportId, kind, rtpParameters, appData }, cb) => {
     try {
+      if (!joined) return socketError(socket, "Join a room first", cb);
       const room = await getOrCreateRoom(joined.sessionId);
       const transport = room.getTransport(socket.id, transportId);
       if (!transport) return socketError(socket, "Transport not found", cb);
@@ -149,6 +151,7 @@ export function registerSignaling(io, socket) {
 
   socket.on("consume", async ({ producerId, rtpCapabilities }, cb) => {
     try {
+      if (!joined) return socketError(socket, "Join a room first", cb);
       const room = await getOrCreateRoom(joined.sessionId);
       if (!room.router.canConsume({ producerId, rtpCapabilities })) {
         return socketError(socket, "Client cannot consume this producer", cb);
@@ -180,6 +183,7 @@ export function registerSignaling(io, socket) {
 
   socket.on("consumer-resume", async ({ consumerId }, cb) => {
     try {
+      if (!joined) return socketError(socket, "Join a room first", cb);
       const peer = (await getOrCreateRoom(joined.sessionId)).getPeer(socket.id);
       const consumer = peer?.consumers.get(consumerId);
       if (!consumer) return socketError(socket, "Consumer not found", cb);
@@ -190,14 +194,19 @@ export function registerSignaling(io, socket) {
     }
   });
 
-  socket.on("toggle-media", ({ kind, enabled }, cb) => {
-    const roomPromise = getOrCreateRoom(joined.sessionId);
-    roomPromise.then((room) => {
+  socket.on("toggle-media", async ({ kind, enabled }, cb) => {
+    try {
+      if (!joined) return socketError(socket, "Join a room first", cb);
+      if (!["audio", "video"].includes(kind)) return socketError(socket, "Invalid media kind", cb);
+      const room = await getOrCreateRoom(joined.sessionId);
       const peer = room.getPeer(socket.id);
-      if (peer) peer.media[kind] = enabled;
+      if (!peer) return socketError(socket, "Peer not found", cb);
+      peer.media[kind] = Boolean(enabled);
       socket.to(joined.sessionId).emit("peer-media-toggled", { peerId: socket.id, kind, enabled });
       callbackOrEmit(socket, "media-toggled", { kind, enabled }, cb);
-    });
+    } catch (error) {
+      socketError(socket, error.message, cb);
+    }
   });
 
   socket.on("end-call", (_payload, cb) => {
