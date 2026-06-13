@@ -261,10 +261,15 @@ export function useMediasoup({ sessionId, role, token }) {
   }
 
   function endCall() {
-    if (role === "agent") socketRef.current?.emit("end-call");
-    else socketRef.current?.emit("leave", { reason: "intentional" });
+    const socket = socketRef.current;
+    if (socket?.connected) {
+      socket.timeout(500).emit("end-call", {}, () => {
+        socket.disconnect();
+      });
+    } else {
+      socket?.disconnect();
+    }
     stopAllMedia();
-    socketRef.current?.disconnect();
     setCallEnded(true);
     setStatus("ended");
   }

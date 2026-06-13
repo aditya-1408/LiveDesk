@@ -192,14 +192,20 @@ export function registerSignaling(io, socket) {
 
   socket.on("end-call", (_payload, cb) => {
     if (!joined) return socketError(socket, "Join a room first", cb);
-    if (joined.role !== "agent") return socketError(socket, "Only the agent can end the session", cb);
+    if (joined.role === "customer") {
+      leave({ reason: "intentional" });
+      callbackOrEmit(socket, "ended", { ok: true, scope: "participant" }, cb);
+      setTimeout(() => socket.disconnect(true), 250);
+      return;
+    }
+    if (joined.role !== "agent") return socketError(socket, "Only an agent can end the session", cb);
     clearCustomerReturnTimer(joined.sessionId);
     endSession(joined.sessionId, "agent");
     io.to(joined.sessionId).emit("call-ended", { by: "agent" });
     const endedSessionId = joined.sessionId;
     setTimeout(() => io.in(endedSessionId).disconnectSockets(true), 250);
     closeRoom(joined.sessionId);
-    callbackOrEmit(socket, "ended", { ok: true }, cb);
+    callbackOrEmit(socket, "ended", { ok: true, scope: "session" }, cb);
   });
 
   const leave = (payload = {}) => {
