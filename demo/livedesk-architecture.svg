@@ -1,0 +1,181 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1250" viewBox="0 0 1800 1250">
+  <defs>
+    <style>
+      .bg { fill: #f6f8fb; }
+      .title { font: 700 44px Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 22px Arial, sans-serif; fill: #475569; }
+      .h { font: 700 24px Arial, sans-serif; fill: #0f172a; }
+      .t { font: 400 18px Arial, sans-serif; fill: #1e293b; }
+      .small { font: 400 15px Arial, sans-serif; fill: #334155; }
+      .tiny { font: 700 14px Arial, sans-serif; fill: #334155; }
+      .card { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 12; }
+      .role { fill: #ecfdf5; stroke: #10b981; stroke-width: 2; rx: 12; }
+      .client { fill: #eff6ff; stroke: #3b82f6; stroke-width: 2; rx: 12; }
+      .server { fill: #fff7ed; stroke: #f97316; stroke-width: 2; rx: 12; }
+      .data { fill: #f8fafc; stroke: #64748b; stroke-width: 2; rx: 12; }
+      .bonus { fill: #fdf2f8; stroke: #db2777; stroke-width: 2; rx: 12; }
+      .arrow { stroke: #0f172a; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .media { stroke: #dc2626; stroke-width: 4; fill: none; marker-end: url(#arrow-red); }
+      .dash { stroke-dasharray: 10 7; }
+      .label { fill: #ffffff; stroke: #cbd5e1; rx: 8; }
+      .ok { fill: #dcfce7; stroke: #16a34a; rx: 8; }
+      .warn { fill: #fef3c7; stroke: #d97706; rx: 8; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#0f172a"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#dc2626"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1800" height="1250"/>
+  <text class="title" x="70" y="70">LiveDesk Architecture and End-to-End Workflow</text>
+  <text class="subtitle" x="72" y="108">Browser-based support call platform with self-hosted mediasoup SFU, realtime chat, recording, file sharing, admin dashboard, and observability.</text>
+
+  <!-- Users -->
+  <rect class="role" x="70" y="160" width="330" height="155"/>
+  <text class="h" x="95" y="200">Call Agent</text>
+  <text class="t" x="95" y="235">- Logs in as agent</text>
+  <text class="t" x="95" y="265">- Creates support sessions</text>
+  <text class="t" x="95" y="295">- Starts/stops recording</text>
+
+  <rect class="role" x="70" y="370" width="330" height="155"/>
+  <text class="h" x="95" y="410">Customer</text>
+  <text class="t" x="95" y="445">- Joins using invite token</text>
+  <text class="t" x="95" y="475">- No account required</text>
+  <text class="t" x="95" y="505">- Can leave call anytime</text>
+
+  <rect class="role" x="70" y="580" width="330" height="155"/>
+  <text class="h" x="95" y="620">Admin</text>
+  <text class="t" x="95" y="655">- Logs in as admin</text>
+  <text class="t" x="95" y="685">- Views live/history sessions</text>
+  <text class="t" x="95" y="715">- Can end active sessions</text>
+
+  <!-- Frontend -->
+  <rect class="client" x="505" y="160" width="390" height="575"/>
+  <text class="h" x="535" y="205">React Web Client</text>
+  <text class="small" x="535" y="235">Runs in browser. No app install required.</text>
+
+  <rect class="card" x="535" y="270" width="330" height="86"/>
+  <text class="t" x="558" y="303">Staff Auth Portal</text>
+  <text class="small" x="558" y="332">Separate Agent/Admin login + signup</text>
+
+  <rect class="card" x="535" y="380" width="330" height="94"/>
+  <text class="t" x="558" y="414">Agent Dashboard</text>
+  <text class="small" x="558" y="443">Create session, copy invite link,</text>
+  <text class="small" x="558" y="466">view session history</text>
+
+  <rect class="card" x="535" y="500" width="330" height="94"/>
+  <text class="t" x="558" y="534">Call Room</text>
+  <text class="small" x="558" y="563">Video/audio, mute/camera controls,</text>
+  <text class="small" x="558" y="586">chat, file upload, recording UI</text>
+
+  <rect class="card" x="535" y="620" width="330" height="86"/>
+  <text class="t" x="558" y="653">Admin Dashboard</text>
+  <text class="small" x="558" y="682">Live sessions, logs, history, end call</text>
+
+  <!-- Backend -->
+  <rect class="server" x="1010" y="135" width="450" height="650"/>
+  <text class="h" x="1040" y="180">Node.js Backend</text>
+  <text class="small" x="1040" y="210">Express + Socket.IO + mediasoup</text>
+
+  <rect class="card" x="1040" y="245" width="390" height="80"/>
+  <text class="t" x="1065" y="278">REST API</text>
+  <text class="small" x="1065" y="306">Auth, sessions, invites, files, recording, metrics</text>
+
+  <rect class="card" x="1040" y="350" width="390" height="92"/>
+  <text class="t" x="1065" y="383">Socket.IO Signaling</text>
+  <text class="small" x="1065" y="412">Presence, join/leave, chat realtime,</text>
+  <text class="small" x="1065" y="434">mute/camera state, call lifecycle</text>
+
+  <rect class="card" x="1040" y="470" width="390" height="105"/>
+  <text class="t" x="1065" y="503">mediasoup SFU</text>
+  <text class="small" x="1065" y="532">Server-routed WebRTC audio/video</text>
+  <text class="small" x="1065" y="555">RTC ports: 40000-40100 UDP/TCP</text>
+
+  <rect class="card" x="1040" y="605" width="390" height="92"/>
+  <text class="t" x="1065" y="638">Access Control</text>
+  <text class="small" x="1065" y="667">Agent, Admin, Customer invite token</text>
+  <text class="small" x="1065" y="689">Role actions enforced server-side</text>
+
+  <!-- Data -->
+  <rect class="data" x="1530" y="160" width="220" height="155"/>
+  <text class="h" x="1555" y="200">SQLite DB</text>
+  <text class="small" x="1555" y="235">Agents/Admins</text>
+  <text class="small" x="1555" y="260">Sessions</text>
+  <text class="small" x="1555" y="285">Participants</text>
+
+  <rect class="data" x="1530" y="350" width="220" height="155"/>
+  <text class="h" x="1555" y="390">Storage</text>
+  <text class="small" x="1555" y="425">Chat uploads</text>
+  <text class="small" x="1555" y="450">Call recordings</text>
+  <text class="small" x="1555" y="475">Download files</text>
+
+  <rect class="data" x="1530" y="540" width="220" height="155"/>
+  <text class="h" x="1555" y="580">Metrics</text>
+  <text class="small" x="1555" y="615">/api/metrics JSON</text>
+  <text class="small" x="1555" y="640">/metrics Prometheus</text>
+  <text class="small" x="1555" y="665">Active sessions, errors</text>
+
+  <!-- Flows -->
+  <path class="arrow" d="M400 235 C445 235, 455 285, 505 310"/>
+  <path class="arrow" d="M400 445 C455 445, 465 545, 505 548"/>
+  <path class="arrow" d="M400 655 C455 655, 465 650, 505 660"/>
+
+  <path class="arrow" d="M895 290 C950 290, 965 280, 1010 280"/>
+  <path class="arrow" d="M895 545 C950 545, 970 400, 1010 400"/>
+  <path class="media" d="M895 548 C955 548, 975 520, 1010 520"/>
+  <path class="arrow" d="M895 665 C950 665, 970 645, 1010 650"/>
+
+  <path class="arrow" d="M1460 285 C1495 285, 1500 235, 1530 235"/>
+  <path class="arrow" d="M1460 398 C1495 398, 1500 425, 1530 425"/>
+  <path class="arrow" d="M1460 650 C1495 650, 1500 620, 1530 620"/>
+
+  <!-- Media path callout -->
+  <rect class="warn" x="505" y="810" width="955" height="95"/>
+  <text class="h" x="535" y="850">Important Media Rule</text>
+  <text class="t" x="535" y="884">Agent and customer media is not peer-to-peer. Audio/video is routed through the self-hosted mediasoup SFU on the backend.</text>
+
+  <!-- Workflow -->
+  <rect class="card" x="70" y="950" width="1680" height="210"/>
+  <text class="h" x="100" y="992">End-to-End Workflow</text>
+  <rect class="ok" x="105" y="1025" width="170" height="85"/>
+  <text class="tiny" x="130" y="1058">1. Agent login</text>
+  <text class="small" x="130" y="1085">Create session</text>
+
+  <rect class="ok" x="300" y="1025" width="190" height="85"/>
+  <text class="tiny" x="325" y="1058">2. Invite link</text>
+  <text class="small" x="325" y="1085">Customer token</text>
+
+  <rect class="ok" x="515" y="1025" width="190" height="85"/>
+  <text class="tiny" x="540" y="1058">3. Join room</text>
+  <text class="small" x="540" y="1085">Presence tracked</text>
+
+  <rect class="ok" x="730" y="1025" width="210" height="85"/>
+  <text class="tiny" x="755" y="1058">4. Call active</text>
+  <text class="small" x="755" y="1085">SFU audio/video</text>
+
+  <rect class="ok" x="965" y="1025" width="210" height="85"/>
+  <text class="tiny" x="990" y="1058">5. Chat/files</text>
+  <text class="small" x="990" y="1085">Realtime + persisted</text>
+
+  <rect class="ok" x="1200" y="1025" width="210" height="85"/>
+  <text class="tiny" x="1225" y="1058">6. Recording</text>
+  <text class="small" x="1225" y="1085">Process + download</text>
+
+  <rect class="ok" x="1435" y="1025" width="250" height="85"/>
+  <text class="tiny" x="1460" y="1058">7. End/history</text>
+  <text class="small" x="1460" y="1085">Logs, durations, metrics</text>
+
+  <path class="arrow" d="M275 1068 L300 1068"/>
+  <path class="arrow" d="M490 1068 L515 1068"/>
+  <path class="arrow" d="M705 1068 L730 1068"/>
+  <path class="arrow" d="M940 1068 L965 1068"/>
+  <path class="arrow" d="M1175 1068 L1200 1068"/>
+  <path class="arrow" d="M1410 1068 L1435 1068"/>
+
+  <!-- Features -->
+  <text class="small" x="100" y="1190">Implemented features: session management, browser join, presence tracking, clean end call, persisted history, server-routed audio/video,</text>
+  <text class="small" x="100" y="1220">mute/camera controls, realtime chat, role access, recording, file sharing, reconnect window, admin dashboard, observability.</text>
+</svg>
