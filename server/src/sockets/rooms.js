@@ -21,3 +21,11 @@ export function closeRoom(sessionId) {
     rooms.delete(sessionId);
   }
 }
+
+export function getLiveRoomStats() {
+  const liveRooms = [...rooms.values()].filter((room) => room.peerCount() > 0);
+  return {
+    activeRooms: liveRooms.length,
+    connectedPeers: liveRooms.reduce((total, room) => total + room.peerCount(), 0)
+  };
+}

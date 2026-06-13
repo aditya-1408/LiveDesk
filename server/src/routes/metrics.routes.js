@@ -3,9 +3,12 @@ import { getMetricsRegistry, getOperationalMetrics } from "../services/metricsSe
 
 export const metricsRouter = express.Router();
 
-metricsRouter.get("/api/metrics", (_req, res) => {
+function sendOperationalMetrics(_req, res) {
   res.json(getOperationalMetrics());
-});
+}
+
+metricsRouter.get("/api/metrics", sendOperationalMetrics);
+metricsRouter.get("/api/metrics.", sendOperationalMetrics);
 
 metricsRouter.get("/metrics", async (_req, res) => {
   const registry = getMetricsRegistry();

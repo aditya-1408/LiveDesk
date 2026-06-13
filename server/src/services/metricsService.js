@@ -1,5 +1,6 @@
 import client from "prom-client";
 import { db } from "../db/database.js";
+import { getLiveRoomStats } from "../sockets/rooms.js";
 
 client.collectDefaultMetrics();
 
@@ -66,8 +67,9 @@ function formatUptime(totalSeconds) {
 }
 
 export function getOperationalMetrics() {
-  const activeSessions = db.prepare("SELECT COUNT(*) AS count FROM sessions WHERE status IN ('created', 'active')").get().count;
-  const connectedParticipants = db
+  const liveRoomStats = getLiveRoomStats();
+  const activeSessionsFromDb = db.prepare("SELECT COUNT(*) AS count FROM sessions WHERE status IN ('created', 'active')").get().count;
+  const connectedParticipantsFromDb = db
     .prepare(
       `SELECT COUNT(*) AS count
        FROM participants p
@@ -75,6 +77,8 @@ export function getOperationalMetrics() {
        WHERE p.left_at IS NULL AND s.status IN ('created', 'active')`
     )
     .get().count;
+  const activeSessions = Math.max(activeSessionsFromDb, liveRoomStats.activeRooms);
+  const connectedParticipants = Math.max(connectedParticipantsFromDb, liveRoomStats.connectedPeers);
   const totalSessions = db.prepare("SELECT COUNT(*) AS count FROM sessions").get().count;
   const totalSessionsToday = db
     .prepare("SELECT COUNT(*) AS count FROM sessions WHERE date(created_at) = date('now', 'localtime')")
@@ -90,6 +94,8 @@ export function getOperationalMetrics() {
     status: "ok",
     activeSessions,
     connectedParticipants,
+    liveRooms: liveRoomStats.activeRooms,
+    liveConnectedPeers: liveRoomStats.connectedPeers,
     totalSessions,
     totalSessionsToday,
     endedSessions,
