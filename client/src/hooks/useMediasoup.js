@@ -11,6 +11,12 @@ function emitAck(socket, event, payload = {}) {
   });
 }
 
+function createClientId() {
+  if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+  const randomPart = Math.random().toString(36).slice(2);
+  return `client-${Date.now().toString(36)}-${randomPart}`;
+}
+
 function createDemoMediaStream(role) {
   const canvas = document.createElement("canvas");
   canvas.width = 960;
@@ -71,7 +77,7 @@ export function useMediasoup({ sessionId, role, token }) {
   const recvTransportRef = useRef(null);
   const producersRef = useRef(new Map());
   const consumersRef = useRef(new Map());
-  const clientIdRef = useRef(localStorage.getItem("aq_client_id") || crypto.randomUUID());
+  const clientIdRef = useRef(localStorage.getItem("aq_client_id") || createClientId());
 
   useEffect(() => {
     localStorage.setItem("aq_client_id", clientIdRef.current);
@@ -147,7 +153,12 @@ export function useMediasoup({ sessionId, role, token }) {
       deviceRef.current = device;
 
       if (!navigator.mediaDevices?.getUserMedia) {
-        throw new Error("This browser does not support camera/microphone access.");
+        const isLanHttp = window.location.protocol === "http:" && !["localhost", "127.0.0.1"].includes(window.location.hostname);
+        throw new Error(
+          isLanHttp
+            ? "Camera/microphone requires HTTPS on phone browsers. Use Chrome secure-origin flag for this LAN URL or run the HTTPS demo mode."
+            : "This browser does not support camera/microphone access."
+        );
       }
 
       setStatus("requesting-media");

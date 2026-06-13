@@ -54,6 +54,8 @@ For LAN/ngrok demos, set `ANNOUNCED_IP` in `server/.env` to the reachable host/I
 
 For a phone-on-same-Wi-Fi demo, open the app on the laptop using the LAN URL, for example `http://10.62.43.31:5173`, not `localhost`. Set `ANNOUNCED_IP` to that same laptop IP before starting the server.
 
+If the phone browser blocks camera/microphone on the HTTP LAN URL, run the frontend with `npm run dev:https --prefix client` and open `https://<laptop-ip>:5173`. Accept the browser certificate warning on the phone for the local demo.
+
 ## Implemented
 
 - Agent login with seeded credentials
