@@ -60,14 +60,18 @@ For LAN/ngrok demos, set `ANNOUNCED_IP` in `server/.env` to the reachable host/I
 - mediasoup server-routed audio/video call flow
 - Mute and camera toggle signaling
 - Realtime in-call chat with persisted history
+- Authenticated file sharing in chat with 10MB upload cap
 - Session history, participants, events, and chat storage
 - Basic reconnect grace window
 - Admin live/history dashboard
-- Recording API/status scaffold
+- Admin ability to end active sessions
+- Recording start/stop/download flow using browser MediaRecorder upload to server storage
+- Prometheus-compatible `/metrics` endpoint
 
 ## Known Limitations
 
-- Recording is scaffolded but the ffmpeg PlainTransport pipeline is not fully wired yet.
+- Recording is implemented for demo via agent-browser MediaRecorder upload. A production SFU-side recorder would pipe mediasoup PlainTransport RTP into ffmpeg.
 - Single mediasoup worker and SQLite are intended for the hackathon demo, not horizontal production scale.
 - Local camera/mic testing is best in Chrome or Edge.
 - If the demo is exposed beyond localhost, firewall rules must allow the RTC port range.
+- Chat uploads allow common images, PDFs, DOC/DOCX, and text files up to 10MB.

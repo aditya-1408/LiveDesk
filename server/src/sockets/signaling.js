@@ -1,5 +1,6 @@
 import { config } from "../config.js";
 import { getSession, getSessionForAgent, addParticipant, markParticipantLeft, markSessionActive, endSession } from "../services/sessionService.js";
+import { mediasoupProducersTotal, socketErrorsTotal } from "../services/metricsService.js";
 import { authenticateSocket } from "./authSocket.js";
 import { closeRoom, getOrCreateRoom } from "./rooms.js";
 
@@ -11,6 +12,7 @@ function callbackOrEmit(socket, event, payload, cb) {
 }
 
 function socketError(socket, message, cb) {
+  socketErrorsTotal.inc();
   callbackOrEmit(socket, "error", { message }, cb);
 }
 
@@ -28,16 +30,22 @@ export function registerSignaling(io, socket) {
       if (role === "agent" && !getSessionForAgent(sessionId, tokenUser.agentId)) return socketError(socket, "Agent cannot access this session", cb);
 
       const room = await getOrCreateRoom(sessionId);
+      const existingSameRole = room.findActivePeerByRole(role);
+      const pendingKey = `${sessionId}:${role}:${clientId}`;
+      const pending = pendingDisconnects.get(pendingKey);
+      if (existingSameRole && existingSameRole.clientId !== clientId && !pending) {
+        return socketError(socket, `A ${role} is already connected to this session`, cb);
+      }
+
       const participantId = addParticipant(sessionId, role, clientId, socket.id);
       room.ensurePeer(socket.id, role, clientId, participantId);
       socket.join(sessionId);
       joined = { sessionId, role, clientId, participantId };
       markSessionActive(sessionId);
 
-      const pendingKey = `${sessionId}:${role}:${clientId}`;
-      const pending = pendingDisconnects.get(pendingKey);
       if (pending) {
         clearTimeout(pending.timer);
+        room.removePeer(pending.socketId);
         pendingDisconnects.delete(pendingKey);
       } else {
         socket.to(sessionId).emit("peer-joined", { peerId: socket.id, role });
@@ -91,6 +99,7 @@ export function registerSignaling(io, socket) {
       if (!transport) return socketError(socket, "Transport not found", cb);
       const producer = await transport.produce({ kind, rtpParameters, appData });
       room.addProducer(socket.id, producer);
+      mediasoupProducersTotal.inc();
       socket.to(joined.sessionId).emit("new-producer", { producerId: producer.id, peerId: socket.id, kind });
       callbackOrEmit(socket, "produced", { producerId: producer.id }, cb);
     } catch (error) {
@@ -171,7 +180,7 @@ export function registerSignaling(io, socket) {
       socket.to(snapshot.sessionId).emit("peer-left", { peerId: socket.id });
       pendingDisconnects.delete(key);
     }, config.reconnectGraceMs);
-    pendingDisconnects.set(key, { timer });
+    pendingDisconnects.set(key, { timer, socketId: socket.id });
     joined = null;
   };
 

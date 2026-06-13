@@ -45,6 +45,23 @@ export function endSession(sessionId, role = "agent") {
   logEvent(sessionId, "ended", role);
 }
 
+export function setRecordingStatus(sessionId, status, filePath = null) {
+  const existing = db.prepare("SELECT id FROM recordings WHERE session_id = ? ORDER BY id DESC LIMIT 1").get(sessionId);
+  if (!existing) {
+    db.prepare(
+      "INSERT INTO recordings (session_id, status, file_path, started_at, ended_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP, CASE WHEN ? IN ('ready', 'failed') THEN CURRENT_TIMESTAMP ELSE NULL END)"
+    ).run(sessionId, status, filePath, status);
+  } else if (filePath) {
+    db.prepare("UPDATE recordings SET status = ?, file_path = ?, ended_at = CURRENT_TIMESTAMP WHERE id = ?").run(status, filePath, existing.id);
+  } else if (status === "recording") {
+    db.prepare("UPDATE recordings SET status = ?, started_at = CURRENT_TIMESTAMP, ended_at = NULL WHERE id = ?").run(status, existing.id);
+  } else {
+    db.prepare("UPDATE recordings SET status = ?, ended_at = CURRENT_TIMESTAMP WHERE id = ?").run(status, existing.id);
+  }
+  logEvent(sessionId, `recording_${status}`, "agent");
+  return db.prepare("SELECT * FROM recordings WHERE session_id = ? ORDER BY id DESC LIMIT 1").get(sessionId);
+}
+
 export function listSessions(agentId) {
   return db
     .prepare(

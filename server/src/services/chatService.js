@@ -10,3 +10,7 @@ export function addMessage(sessionId, senderRole, message, fileUrl = null) {
 export function listMessages(sessionId) {
   return db.prepare("SELECT * FROM chat_messages WHERE session_id = ? ORDER BY sent_at ASC").all(sessionId);
 }
+
+export function getMessage(messageId) {
+  return db.prepare("SELECT * FROM chat_messages WHERE id = ?").get(messageId);
+}

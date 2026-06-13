@@ -33,6 +33,10 @@ export class Room {
     return this.peers.get(socketId);
   }
 
+  findActivePeerByRole(role) {
+    return [...this.peers.values()].find((peer) => peer.role === role);
+  }
+
   async createWebRtcTransport(socketId, direction) {
     const peer = this.getPeer(socketId);
     if (!peer) throw new Error("Peer has not joined room");

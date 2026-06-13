@@ -8,6 +8,8 @@ import { authRouter } from "./routes/auth.routes.js";
 import { sessionRouter } from "./routes/session.routes.js";
 import { recordingRouter } from "./routes/recording.routes.js";
 import { adminRouter } from "./routes/admin.routes.js";
+import { uploadRouter } from "./routes/upload.routes.js";
+import { metricsRouter } from "./routes/metrics.routes.js";
 import { createSocketServer } from "./sockets/index.js";
 import { logger } from "./utils/logger.js";
 
@@ -24,9 +26,12 @@ async function bootstrap() {
   app.use("/api", sessionRouter);
   app.use("/api", recordingRouter);
   app.use("/api", adminRouter);
+  app.use("/api", uploadRouter);
+  app.use(metricsRouter);
 
   const httpServer = http.createServer(app);
-  createSocketServer(httpServer);
+  const io = createSocketServer(httpServer);
+  app.set("io", io);
 
   httpServer.listen(config.port, () => {
     logger.info(`API and Socket.IO listening on http://localhost:${config.port}`);

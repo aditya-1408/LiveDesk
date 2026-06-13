@@ -15,6 +15,11 @@ export default function AdminDashboard() {
     setHistory(historyRows);
   }
 
+  async function endSession(sessionId) {
+    await api(`/api/admin/sessions/${sessionId}/end`, { method: "POST" });
+    await load();
+  }
+
   useEffect(() => {
     load();
     const timer = setInterval(load, 5000);
@@ -33,8 +38,18 @@ export default function AdminDashboard() {
       <section className="panel">
         <h2>Live sessions</h2>
         <table>
-          <thead><tr><th>Session</th><th>Status</th><th>Connected</th><th>Created</th></tr></thead>
-          <tbody>{live.map((session) => <tr key={session.id}><td>{session.id}</td><td>{session.status}</td><td>{session.connected_participants}</td><td>{session.created_at}</td></tr>)}</tbody>
+          <thead><tr><th>Session</th><th>Status</th><th>Connected</th><th>Created</th><th></th></tr></thead>
+          <tbody>
+            {live.map((session) => (
+              <tr key={session.id}>
+                <td>{session.id}</td>
+                <td>{session.status}</td>
+                <td>{session.connected_participants}</td>
+                <td>{session.created_at}</td>
+                <td><button className="danger" onClick={() => endSession(session.id)}>End</button></td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </section>
       <section className="panel">

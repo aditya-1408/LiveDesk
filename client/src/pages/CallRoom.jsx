@@ -3,6 +3,7 @@ import { getStoredToken } from "../api.js";
 import ChatPanel from "../components/ChatPanel.jsx";
 import ConnectionStatus from "../components/ConnectionStatus.jsx";
 import Controls from "../components/Controls.jsx";
+import RecordingControls from "../components/RecordingControls.jsx";
 import VideoTile from "../components/VideoTile.jsx";
 import { useMediasoup } from "../hooks/useMediasoup.js";
 
@@ -39,6 +40,14 @@ export default function CallRoom() {
             setTimeout(() => navigate(role === "agent" ? "/dashboard" : "/"), 800);
           }}
         />
+        {role === "agent" && (
+          <RecordingControls
+            sessionId={sessionId}
+            token={token}
+            localStream={call.localStream}
+            remoteStreams={call.remoteStreams}
+          />
+        )}
       </section>
       <ChatPanel socket={call.socket} sessionId={sessionId} token={token} role={role} />
     </main>

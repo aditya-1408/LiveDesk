@@ -24,6 +24,10 @@ SQLite persists:
 - chat_messages
 - recordings
 - session_events
+
+Stored files:
+- chat uploads in `server/uploads`
+- uploaded call recordings in `server/recordings`
 ```
 
 ## Design Choices
@@ -71,3 +75,11 @@ Server to client:
 ## Production Path
 
 For a production build, replace SQLite with Postgres, add Redis for distributed room/session state, run multiple mediasoup workers per host, put API instances behind a load balancer with sticky Socket.IO sessions, secure uploads with object storage, and complete recording by piping mediasoup PlainTransport RTP into ffmpeg with generated SDP files.
+
+## Bonus Features
+
+File sharing uses authenticated REST uploads. The server stores files under UUID names, persists a chat message with the secure download URL, and only allows participants scoped to the session to download.
+
+Recording uses an agent-side MediaRecorder demo flow: the agent starts recording, the browser records the currently available local and remote tracks, the resulting WebM is uploaded to the server, and the session recording row becomes `ready` with an authenticated download endpoint. The production path is server-side ffmpeg fed by mediasoup PlainTransport RTP.
+
+Observability is exposed at `/metrics` with default Node process metrics plus `active_sessions`, `connected_participants`, `socket_errors_total`, and `mediasoup_producers_total`.
