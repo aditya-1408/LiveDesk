@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { api } from "../api.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 function formatDuration(seconds) {
   if (seconds == null) return "-";
@@ -17,6 +17,7 @@ export default function AdminDashboard() {
   const [live, setLive] = useState([]);
   const [history, setHistory] = useState([]);
   const [selected, setSelected] = useState(null);
+  const { logout } = useAuth();
 
   async function load() {
     const [liveRows, historyRows] = await Promise.all([
@@ -50,7 +51,7 @@ export default function AdminDashboard() {
           <h1>Admin Dashboard</h1>
           <p>Live sessions refresh every five seconds.</p>
         </div>
-        <Link to="/dashboard">Agent dashboard</Link>
+        <button onClick={logout}>Logout</button>
       </header>
       <section className="panel">
         <h2>Live sessions</h2>

@@ -1,13 +1,17 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Navigate, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function AgentLogin() {
   const [username, setUsername] = useState("agent");
   const [password, setPassword] = useState("agent123");
   const [error, setError] = useState("");
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
+
+  if (user?.role === "admin") return <Navigate to="/admin" replace />;
+  if (user?.role === "agent") return <Navigate to="/dashboard" replace />;
+  if (user?.role === "customer") return <Navigate to="/ended" replace />;
 
   async function submit(event) {
     event.preventDefault();

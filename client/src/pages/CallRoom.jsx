@@ -33,8 +33,7 @@ export default function CallRoom() {
       <main className="auth-page">
         <section className="panel auth-form">
           <h1>Join from invite</h1>
-          <p>This room link needs a valid agent login or a customer invite token. Open the customer share link that starts with `/join/`, or sign in as the agent first.</p>
-          <button onClick={() => navigate("/login")}>Agent login</button>
+          <p>This room needs a valid customer invite link. Please use the latest share link from the support agent.</p>
         </section>
       </main>
     );

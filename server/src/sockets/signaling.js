@@ -53,7 +53,7 @@ export function registerSignaling(io, socket) {
       const session = getSession(sessionId);
       if (!session) return socketError(socket, "Session not found", cb);
       if (session.status === "ended") return socketError(socket, "This session has ended", cb);
-      const canJoinAsAgent = role === "agent" && ["agent", "admin"].includes(tokenUser.role);
+      const canJoinAsAgent = role === "agent" && tokenUser.role === "agent";
       if (role !== tokenUser.role && !canJoinAsAgent) return socketError(socket, "Role does not match token", cb);
       if (role === "customer" && tokenUser.sessionId !== sessionId) return socketError(socket, "Invite token is not valid for this session", cb);
       if (role === "agent" && tokenUser.role !== "admin" && !getSessionForAgent(sessionId, tokenUser.agentId)) return socketError(socket, "Agent cannot access this session", cb);

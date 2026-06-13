@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { api } from "../api.js";
 import { useAuth } from "../context/AuthContext.jsx";
 
@@ -18,7 +18,7 @@ export default function AgentDashboard() {
   const [sessions, setSessions] = useState([]);
   const [invite, setInvite] = useState(null);
   const [error, setError] = useState("");
-  const { logout, token, isAdmin } = useAuth();
+  const { logout, token } = useAuth();
   const navigate = useNavigate();
 
   async function loadSessions() {
@@ -53,7 +53,6 @@ export default function AgentDashboard() {
           <p>Agent workspace for live browser support sessions.</p>
         </div>
         <nav>
-          {isAdmin && <Link to="/admin">Admin</Link>}
           <button onClick={logout}>Logout</button>
         </nav>
       </header>
