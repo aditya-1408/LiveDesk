@@ -1,5 +1,6 @@
 import express from "express";
 import { requireAgent, requireAuth } from "../auth/authMiddleware.js";
+import { db } from "../db/database.js";
 import { signCustomer } from "../auth/jwt.js";
 import { listMessages } from "../services/chatService.js";
 import {
@@ -50,7 +51,17 @@ sessionRouter.get("/sessions/:id/chat", requireAuth, (req, res) => {
 sessionRouter.get("/invite/:token", (req, res) => {
   const session = getSessionByToken(req.params.token);
   if (!session) return res.status(404).json({ error: "Invalid invite link" });
-  if (session.status === "ended") return res.status(410).json({ error: "This session has ended" });
+  if (session.status === "ended") {
+    const endedEvent = db
+      .prepare("SELECT role FROM session_events WHERE session_id = ? AND event_type = 'ended' ORDER BY id DESC LIMIT 1")
+      .get(session.id);
+    const timeoutExpired = endedEvent?.role === "system";
+    return res.status(410).json({
+      error: timeoutExpired
+        ? "The 5-minute reconnect window for this session has expired. Please ask the agent to create a new call."
+        : "This session has ended. Please ask the agent to create a new call."
+    });
+  }
 
   res.json({
     token: signCustomer(session.id),

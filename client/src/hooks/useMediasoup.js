@@ -146,6 +146,9 @@ export function useMediasoup({ sessionId, role, token }) {
         setStatus("ended");
         socket.disconnect();
       });
+      socket.on("peer-joined", () => {
+        setNotice("");
+      });
       socket.on("peer-left", ({ peerId }) => {
         setRemoteStreams((current) => {
           const leaving = current.find((item) => item.peerId === peerId);
@@ -165,6 +168,7 @@ export function useMediasoup({ sessionId, role, token }) {
         role,
         clientId: clientIdRef.current
       });
+      setNotice("");
 
       const { rtpCapabilities } = await emitAck(socket, "get-router-rtp-capabilities");
       const device = new Device();
