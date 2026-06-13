@@ -1,12 +1,14 @@
 import { Server } from "socket.io";
-import { config } from "../config.js";
+import { config, isAllowedOrigin } from "../config.js";
 import { registerChat } from "./chat.js";
 import { registerSignaling } from "./signaling.js";
 
 export function createSocketServer(httpServer) {
   const io = new Server(httpServer, {
     cors: {
-      origin: config.clientOrigin,
+      origin(origin, callback) {
+        callback(null, isAllowedOrigin(origin));
+      },
       credentials: true
     }
   });

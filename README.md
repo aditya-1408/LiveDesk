@@ -52,6 +52,8 @@ password: agent123
 
 For LAN/ngrok demos, set `ANNOUNCED_IP` in `server/.env` to the reachable host/IP used by browsers.
 
+For a phone-on-same-Wi-Fi demo, open the app on the laptop using the LAN URL, for example `http://10.62.43.31:5173`, not `localhost`. Set `ANNOUNCED_IP` to that same laptop IP before starting the server.
+
 ## Implemented
 
 - Agent login with seeded credentials

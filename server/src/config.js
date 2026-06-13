@@ -5,6 +5,10 @@ dotenv.config();
 export const config = {
   port: Number(process.env.PORT || 4000),
   clientOrigin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+  clientOrigins: (process.env.CLIENT_ORIGINS || process.env.CLIENT_ORIGIN || "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   jwtSecret: process.env.JWT_SECRET || "dev-only-change-me",
   databasePath: process.env.DATABASE_PATH || "./support.db",
   uploadDir: process.env.UPLOAD_DIR || "./uploads",
@@ -15,6 +19,23 @@ export const config = {
   reconnectGraceMs: Number(process.env.RECONNECT_GRACE_MS || 30000),
   customerReturnWindowMs: Number(process.env.CUSTOMER_RETURN_WINDOW_MS || 300000)
 };
+
+export function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (config.clientOrigins.includes("*") || config.clientOrigins.includes(origin)) return true;
+  try {
+    const url = new URL(origin);
+    return (
+      url.hostname === "localhost" ||
+      url.hostname === "127.0.0.1" ||
+      url.hostname.startsWith("192.168.") ||
+      url.hostname.startsWith("10.") ||
+      /^172\.(1[6-9]|2\d|3[0-1])\./.test(url.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
 
 export const mediaCodecs = [
   {

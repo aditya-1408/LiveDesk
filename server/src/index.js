@@ -1,7 +1,7 @@
 import http from "node:http";
 import express from "express";
 import cors from "cors";
-import { config } from "./config.js";
+import { config, isAllowedOrigin } from "./config.js";
 import { initDatabase } from "./db/database.js";
 import { createMediasoupWorker } from "./mediasoup/worker.js";
 import { authRouter } from "./routes/auth.routes.js";
@@ -18,7 +18,14 @@ async function bootstrap() {
   await createMediasoupWorker();
 
   const app = express();
-  app.use(cors({ origin: config.clientOrigin, credentials: true }));
+  app.use(
+    cors({
+      origin(origin, callback) {
+        callback(null, isAllowedOrigin(origin));
+      },
+      credentials: true
+    })
+  );
   app.use(express.json());
 
   app.get("/health", (_req, res) => res.json({ status: "ok" }));
