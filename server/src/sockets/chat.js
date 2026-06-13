@@ -1,4 +1,4 @@
-import { addMessage } from "../services/chatService.js";
+import { addMessage, getMessage } from "../services/chatService.js";
 import { canAccessSession } from "../services/accessService.js";
 import { authenticateSocket } from "./authSocket.js";
 
@@ -20,11 +20,13 @@ export function registerChat(socket) {
     }
   });
 
-  socket.on("chat:file-shared", ({ sessionId, message }, cb) => {
+  socket.on("chat:file-shared", ({ sessionId, messageId }, cb) => {
     try {
       const user = authenticateSocket(socket);
       const access = canAccessSession(user, sessionId);
       if (!access.ok) return cb?.({ error: access.error });
+      const message = getMessage(messageId);
+      if (!message || message.session_id !== sessionId) return cb?.({ error: "Shared file message not found" });
       socket.to(sessionId).emit("chat:receive", message);
       socket.emit("chat:receive", message);
       cb?.({ ok: true });

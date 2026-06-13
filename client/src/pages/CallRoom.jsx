@@ -14,7 +14,7 @@ export default function CallRoom() {
   const navigate = useNavigate();
   const token = location.state?.token || getStoredToken();
   const tokenPayload = decodeToken(token);
-  const role = location.state?.role || tokenPayload?.role || null;
+  const role = location.state?.role || (tokenPayload?.role === "admin" ? "agent" : tokenPayload?.role) || null;
   const invalidRoomAccess =
     !token ||
     !role ||

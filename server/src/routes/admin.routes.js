@@ -61,6 +61,7 @@ adminRouter.post("/admin/sessions/:id/end", requireAdmin, (req, res) => {
   if (!session) return res.status(404).json({ error: "Session not found" });
   endSession(req.params.id, "agent");
   req.app.get("io")?.to(req.params.id).emit("call-ended", { by: "admin" });
+  setTimeout(() => req.app.get("io")?.in(req.params.id).disconnectSockets(true), 250);
   closeRoom(req.params.id);
   res.json({ ok: true });
 });

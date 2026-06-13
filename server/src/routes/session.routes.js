@@ -64,5 +64,7 @@ sessionRouter.post("/sessions/:id/end", requireAgent, (req, res) => {
   const session = getSessionForAgent(req.params.id, req.user.agentId);
   if (!session) return res.status(404).json({ error: "Session not found" });
   endSession(req.params.id, "agent");
+  req.app.get("io")?.to(req.params.id).emit("call-ended", { by: "agent" });
+  setTimeout(() => req.app.get("io")?.in(req.params.id).disconnectSockets(true), 250);
   res.json({ ok: true });
 });

@@ -39,7 +39,7 @@ export default function ChatPanel({ socket, sessionId, token, role }) {
         token,
         body: form
       });
-      socket.emit("chat:file-shared", { sessionId, message: result.message });
+      socket.emit("chat:file-shared", { sessionId, messageId: result.message.id });
       setFile(null);
       setDraft("");
     } catch (err) {
